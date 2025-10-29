@@ -85,7 +85,7 @@ class AudioManager: ObservableObject {
             audioBuffer.removeFirst(min(bufferSize / 2, audioBuffer.count))
             
             if let result = pitchDetector.detectPitch(from: bufferToProcess, sampleRate: sampleRate) {
-                if result.confidence > 0.3 {
+                if result.confidence > 0.5 {
                     DispatchQueue.main.async {
                         self.currentNote = result.note
                         self.currentFrequency = result.frequency
