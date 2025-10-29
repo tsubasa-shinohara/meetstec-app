@@ -40,7 +40,9 @@ class AudioManager: ObservableObject {
             let recordingFormat = inputNode.outputFormat(forBus: 0)
             let sampleRate = recordingFormat.sampleRate
             
-            inputNode.installTap(onBus: 0, bufferSize: 4096, format: recordingFormat) { [weak self] buffer, _ in
+            try audioSession.setPreferredIOBufferDuration(0.005)
+            
+            inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
                 guard let self = self else { return }
                 self.processAudioBuffer(buffer, sampleRate: sampleRate)
             }
@@ -80,9 +82,10 @@ class AudioManager: ObservableObject {
         
         audioBuffer.append(contentsOf: samples)
         
-        if audioBuffer.count >= bufferSize {
+        let hop = bufferSize / 4
+        while audioBuffer.count >= bufferSize {
             let bufferToProcess = Array(audioBuffer.prefix(bufferSize))
-            audioBuffer.removeFirst(min(bufferSize / 2, audioBuffer.count))
+            audioBuffer.removeFirst(hop)
             
             if let result = pitchDetector.detectPitch(from: bufferToProcess, sampleRate: sampleRate) {
                 if result.confidence > 0.3 {
